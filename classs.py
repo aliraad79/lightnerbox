@@ -1,14 +1,6 @@
+import sqlite3
 import time
 import weakref
-
-
-def assign_cards(account):
-    cards = []
-    with open('cards/' + account.name + '.txt', 'r') as file:
-        lines = file.readlines()
-        for i in range(0, len(lines), 3):
-            cards.append(Card(account, lines[i + 1], lines[i + 2]))
-    return cards
 
 
 class Account:
@@ -18,12 +10,20 @@ class Account:
         self.name = name
         self.created_time = time.ctime()
         self.__class__.instances.append(weakref.proxy(self))
-        self.cards = assign_cards(self)
+        open("cards/" + name + ".txt", 'a+')
 
+    def get_cards(self):
+        return list(sqlite3.connect('cards.db').cursor().execute(
+            "SELECT * FROM cards WHERE id IN (" + ", ".join(self.get_current_cards()) + ")"))
 
-class Card:
-    def __init__(self, owner: Account, title, description):
-        self.owner = owner
-        self.creating_time = time.ctime()
-        self.title = title
-        self.description = description
+    def add_card(self, _list):
+        temp = self.get_current_cards()
+        temp.extend(_list)
+        open("cards/" + self.name + ".txt", 'w').write(str(temp)[1:-1])
+
+    def get_current_cards(self):
+        t = open("cards/" + self.name + ".txt", 'r').read().split(',')
+        if t != ['']:
+            return t
+        else:
+            return []

@@ -1,3 +1,4 @@
+import datetime
 import time, math
 from classs import Account
 import sqlite3
@@ -18,14 +19,22 @@ print()
 inp = int(input("\tenter account number or 0 for making new account:\t"))
 
 if inp != 0:
-    account = Account.instances[inp]
+    account = Account.instances[inp - 1]
 else:
     account = Account(input('\tEnter Account name:\t'))
 
-inp = input("\tWelcome!!!\n\tAccount Menu\n\t1.make new card\n\t2.start your practice\n\tchoose:\t")
+inp = int(input(
+    "\tWelcome!!!\n\tAccount Menu\n\t1.make new card\n\t2.start your practice(show cards)\n\t3.add card to your practice\n\tchoose:\t"))
 if inp == 1:
     title = input('enter title:\t')
     desc = input('enter desc:\t')
-    c.execute("INSERT INTO cards VALUES (" + title + "," + desc + ")")
+    c.execute("INSERT INTO cards VALUES ('" + title + "','" + desc + "')")
+    conn.commit()
 elif inp == 2:
-    time.time()
+    print(account.get_cards())
+elif inp == 3:
+    table = c.execute('SELECT * FROM cards ')
+    print("enter(tick) numbers you want (with space between): ")
+    for counter, row in enumerate(table):
+        print(counter, row[0], row[1])
+    account.add_card(list(map(int, input().split())))
