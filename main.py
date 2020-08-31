@@ -1,5 +1,4 @@
-import datetime
-import time, math
+import json
 from classs import Account
 import sqlite3
 import PySimpleGUI as sg
@@ -18,45 +17,87 @@ list_of_accounts = ['new account']
 for i in Account.instances:
     list_of_accounts.append(i.name)
 layout = [[sg.Text("Available Accounts")],
-          [sg.Listbox(list_of_accounts , size=(30, 6))],
+          [sg.Listbox(list_of_accounts, size=(30, 6))],
           [sg.Button('Ok')]]
 
 # Create the Window
-window = sg.Window('Lightner Box', layout)
+window = sg.Window('Lightner Box', layout, size=(400, 200))
 
 # Event Loop to process "events" and get the "values" of the inputs
 
 event, values = window.read()
 if values[0] != 'new account':
     for i in Account.instances:
-        if i.name == values[0]:
+        if i.name == values[0][0]:
             account = i
             break
 else:
     account = Account(input('\tEnter Account name:\t'))
 
 window.close()
-layout = [[sg.Button("make new card")],
-          [sg.Button("start your practice(show cards)")],
-          [sg.Button("add card to your practice")],
-          [sg.Button('Ok')]]
 
 # Create the Window
-window = sg.Window('Lightner Box2', layout)
+layout = [[sg.Button("make new card", key='-1-')],
+          [sg.Button("start your practice(show cards)", key='-2-')],
+          [sg.Button("add card to your practice", key='-3-')]]
+
+window = sg.Window('Lightner Box2', layout, finalize=True, size=(400, 200))
 
 
-inp = int(input(
-    "\tWelcome!!!\n\tAccount Menu\n\t1.make new card\n\t2.start your practice(show cards)\n\t3.add card to your practice\n\tchoose:\t"))
-if inp == 1:
-    title = input('enter title:\t')
-    desc = input('enter desc:\t')
-    c.execute("INSERT INTO cards VALUES ('" + title + "','" + desc + "')")
+def get_next_index_of_table():
+    cursor = sqlite3.connect('cards.db').cursor()
+    cursor.execute("SELECT COUNT(*) from cards ")
+    result = cursor.fetchone()
+    return str(result[0] + 1)
+
+
+def create_card():
+    new_window = sg.Window('Create New Card', [[sg.Text('title'), sg.Input()], [sg.Text('Description'), sg.Input()],
+                                               [sg.Button('confirm', key='confirm')]])
+    values1, event1 = new_window.read()
+    c.execute("INSERT INTO cards VALUES ( '" + get_next_index_of_table() + "','" + event1[0] + "','" + event1[1] + "')")
     conn.commit()
-elif inp == 2:
-    print(account.get_cards())
-elif inp == 3:
-    table = c.execute('SELECT * FROM cards ')
+    new_window.close()
+
+
+def show_cards(cards):
+    headings = ['ID', 'Title', 'Description']  # the text of the headings
+    header = [[sg.Text('  ')] + [sg.Text(h, size=(14, 1)) for h in headings]]  # build header layout
+    input_rows = [[sg.Text(cards[row1][col], size=(15, 1), pad=(0, 0)) for col in range(3)] for row1 in
+                  range(len(cards))]
+    button = [[sg.Button('OK')]]
+    new_window = sg.Window('Your Cards', header + input_rows + button, font='Courier 12', finalize=True)
+    event1, values1 = new_window.read()
+    new_window.close()
+
+
+def tick_cards(_table):
     print("enter(tick) numbers you want (with space between): ")
-    for counter, row in enumerate(table):
-        print(counter, row[0], row[1])
-    account.add_card(list(map(int, input().split())))
+
+    headings = ['ID', 'Title', 'Description']  # the text of the headings
+    header = [[sg.Text('  ')] + [sg.Text(h, size=(10, 1)) for h in headings]]  # build header layout
+    rows = []
+    for i in _table:
+        rows += [[sg.Checkbox(''), sg.Text(i[0], size=(5, 1), pad=(0, 0)), sg.Text(i[1], size=(15, 1), pad=(0, 0)),
+                  sg.Text(i[2], size=(30, 1), pad=(0, 0))]]
+    print(rows)
+    button = [[sg.Button('OK')]]
+    new_window = sg.Window('Your Cards', header + rows + button, font='Courier 12', finalize=True)
+    event1, values1 = new_window.read()
+    new_window.close()
+
+    # account.add_card(list(map(int, input().split())))
+
+
+while True:
+    event, values = window.read()
+    if event == sg.WIN_CLOSED:
+        break
+
+    if event == '-1-':
+        create_card()
+    elif event == '-2-':
+        show_cards(account.get_cards())
+    elif event == '-3-':
+        table = c.execute('SELECT * FROM cards ')
+        tick_cards(list(table))
