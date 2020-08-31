@@ -18,11 +18,13 @@ class Account:
 
     def add_card(self, _list):
         temp = self.get_current_cards()
-        temp.extend(_list)
-        open("cards/" + self.name + ".txt", 'w').write(str(temp)[1:-1])
+        print(temp)
+        temp.extend([str(i[0]).strip() for i in _list])
+        open("cards/" + self.name + ".txt", 'w').write(', '.join(temp))
 
     def get_current_cards(self):
         t = open("cards/" + self.name + ".txt", 'r').read().split(',')
+        print(t)
         if t != ['']:
             return t
         else:

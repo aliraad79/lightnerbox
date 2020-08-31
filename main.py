@@ -72,21 +72,19 @@ def show_cards(cards):
 
 
 def tick_cards(_table):
-    print("enter(tick) numbers you want (with space between): ")
-
     headings = ['ID', 'Title', 'Description']  # the text of the headings
     header = [[sg.Text('  ')] + [sg.Text(h, size=(10, 1)) for h in headings]]  # build header layout
     rows = []
     for i in _table:
         rows += [[sg.Checkbox(''), sg.Text(i[0], size=(5, 1), pad=(0, 0)), sg.Text(i[1], size=(15, 1), pad=(0, 0)),
                   sg.Text(i[2], size=(30, 1), pad=(0, 0))]]
-    print(rows)
     button = [[sg.Button('OK')]]
     new_window = sg.Window('Your Cards', header + rows + button, font='Courier 12', finalize=True)
     event1, values1 = new_window.read()
+    for i, j in values1.items():
+        if j:
+            account.add_card([_table[i]])
     new_window.close()
-
-    # account.add_card(list(map(int, input().split())))
 
 
 while True:
