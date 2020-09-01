@@ -1,16 +1,18 @@
 import sqlite3
 import time
 import weakref
+import os
 
 
 class Account:
-    instances = []
 
     def __init__(self, name):
+        print(name)
         self.name = name
         self.created_time = time.ctime()
-        self.__class__.instances.append(weakref.proxy(self))
-        open("cards/" + name + ".txt", 'a+')
+        if not os.path.exists('cards/' + name + '.txt'):
+            open('cards/' + "accounts.txt", 'a+').write(name + '\n')
+            open('cards/' + name + ".txt", 'a+')
 
     def get_cards(self):
         return list(sqlite3.connect('cards.db').cursor().execute(
@@ -29,3 +31,6 @@ class Account:
             return t
         else:
             return []
+
+    def get_instances():
+        return open('cards/' + "accounts.txt", 'r').readlines()

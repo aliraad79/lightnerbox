@@ -14,8 +14,8 @@ sg.theme('DarkAmber')  # Add a touch of color
 a = Account('ali')
 b = Account("mahdi")
 list_of_accounts = ['new account']
-for i in Account.instances:
-    list_of_accounts.append(i.name)
+list_of_accounts.extend(Account.get_instances())
+
 layout = [[sg.Text("Available Accounts")],
           [sg.Listbox(list_of_accounts, size=(30, 6))],
           [sg.Button('Ok')]]
@@ -26,13 +26,13 @@ window = sg.Window('Lightner Box', layout, size=(400, 200))
 # Event Loop to process "events" and get the "values" of the inputs
 
 event, values = window.read()
-if values[0] != 'new account':
+if values[0] != ['new account']:
     for i in Account.instances:
         if i.name == values[0][0]:
             account = i
             break
 else:
-    account = Account(input('\tEnter Account name:\t'))
+    account = Account(sg.popup_get_text("Enter Account name"))
 
 window.close()
 
@@ -41,7 +41,7 @@ layout = [[sg.Button("make new card", key='-1-')],
           [sg.Button("start your practice(show cards)", key='-2-')],
           [sg.Button("add card to your practice", key='-3-')]]
 
-window = sg.Window('Lightner Box2', layout, finalize=True, size=(400, 200))
+window = sg.Window('Lightner Box', layout, finalize=True, size=(400, 200))
 
 
 def get_next_index_of_table():
