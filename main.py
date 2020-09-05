@@ -1,5 +1,4 @@
-import json
-from classs import Account
+from classs import Account, get_account_instances
 import sqlite3
 import PySimpleGUI as sg
 
@@ -14,7 +13,7 @@ sg.theme('DarkAmber')  # Add a touch of color
 a = Account('ali')
 b = Account("mahdi")
 list_of_accounts = ['new account']
-list_of_accounts.extend(Account.get_instances())
+list_of_accounts.extend(get_account_instances())
 
 layout = [[sg.Text("Available Accounts")],
           [sg.Listbox(list_of_accounts, size=(30, 6))],
@@ -27,9 +26,9 @@ window = sg.Window('Lightner Box', layout, size=(400, 200))
 
 event, values = window.read()
 if values[0] != ['new account']:
-    for i in Account.instances:
-        if i.name == values[0][0]:
-            account = i
+    for i in get_account_instances():
+        if i == values[0][0]:
+            account = Account(i)
             break
 else:
     account = Account(sg.popup_get_text("Enter Account name"))
@@ -53,10 +52,13 @@ def get_next_index_of_table():
 
 def create_card():
     new_window = sg.Window('Create New Card', [[sg.Text('title'), sg.Input()], [sg.Text('Description'), sg.Input()],
-                                               [sg.Button('confirm', key='confirm')]])
+                                               [sg.Button('confirm', key='confirm'),
+                                                sg.Button('cancel', key='cancel')]])
     values1, event1 = new_window.read()
-    c.execute("INSERT INTO cards VALUES ( '" + get_next_index_of_table() + "','" + event1[0] + "','" + event1[1] + "')")
-    conn.commit()
+    if values1 == 'confirm':
+        c.execute(
+            "INSERT INTO cards VALUES ( '" + get_next_index_of_table() + "','" + event1[0] + "','" + event1[1] + "')")
+        conn.commit()
     new_window.close()
 
 

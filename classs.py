@@ -1,36 +1,38 @@
 import sqlite3
 import time
-import weakref
 import os
+from datetime import date
+
+
+def get_account_instances():
+    temp = []
+    for i in os.listdir("cards/"):
+        temp.append(i.replace('.db', ''))
+    return temp
 
 
 class Account:
 
     def __init__(self, name):
-        print(name)
         self.name = name
         self.created_time = time.ctime()
         if not os.path.exists('cards/' + name + '.txt'):
-            open('cards/' + "accounts.txt", 'a+').write(name + '\n')
-            open('cards/' + name + ".txt", 'a+')
+            open('cards/' + name + ".db", 'w')
+            conn = sqlite3.connect('cards/' + name + '.db')
+            conn.cursor().execute("CREATE TABLE " + name + " (id int PRIMARY KEY,last_read date)")
+            conn.commit()
 
     def get_cards(self):
         return list(sqlite3.connect('cards.db').cursor().execute(
             "SELECT * FROM cards WHERE id IN (" + ", ".join(self.get_current_cards()) + ")"))
 
     def add_card(self, _list):
-        temp = self.get_current_cards()
-        print(temp)
-        temp.extend([str(i[0]).strip() for i in _list])
-        open("cards/" + self.name + ".txt", 'w').write(', '.join(temp))
+        conn = sqlite3.connect('cards/' + self.name + '.db')
+        cursor = conn.cursor()
+        for i in _list:
+            cursor.execute("INSERT INTO " + self.name + " VALUES  (" + str(i[0]) + " ," + str(date.today()) + ")")
+        conn.commit()
 
     def get_current_cards(self):
-        t = open("cards/" + self.name + ".txt", 'r').read().split(',')
-        print(t)
-        if t != ['']:
-            return t
-        else:
-            return []
-
-    def get_instances():
-        return open('cards/' + "accounts.txt", 'r').readlines()
+        return [str(i[0]) for i in sqlite3.connect("cards/" + self.name + '.db').cursor().execute(
+            "SELECT id FROM " + self.name).fetchall()]
