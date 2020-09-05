@@ -15,9 +15,7 @@ b = Account("mahdi")
 list_of_accounts = ['new account']
 list_of_accounts.extend(get_account_instances())
 
-layout = [[sg.Text("Available Accounts")],
-          [sg.Listbox(list_of_accounts, size=(30, 6))],
-          [sg.Button('Ok')]]
+layout = [[sg.Text("Available Accounts")], [sg.Listbox(list_of_accounts, size=(30, 6))], [sg.Button('Ok')]]
 
 # Create the Window
 window = sg.Window('Lightner Box', layout, size=(400, 200))
@@ -63,14 +61,21 @@ def create_card():
 
 
 def show_cards(cards):
-    headings = ['ID', 'Title', 'Description']  # the text of the headings
-    header = [[sg.Text('  ')] + [sg.Text(h, size=(14, 1)) for h in headings]]  # build header layout
-    input_rows = [[sg.Text(cards[row1][col], size=(15, 1), pad=(0, 0)) for col in range(3)] for row1 in
-                  range(len(cards))]
-    button = [[sg.Button('OK')]]
-    new_window = sg.Window('Your Cards', header + input_rows + button, font='Courier 12', finalize=True)
-    event1, values1 = new_window.read()
-    new_window.close()
+    print(cards)
+    must_read_cards = get_must_read_cards(cards)
+    for i in cards:
+        new_window = sg.Window('', [[sg.Text(str(i[1]), font=("Helvetica", 25))],
+                                    [sg.Button('show definition', key='-1-')]], size=(300, 200))
+        event1, values1 = new_window.read()
+        if event1 == sg.WIN_CLOSED:  # if user closes window
+            break
+        elif event1 == '-1-':
+            new_window.close()
+            new_window = sg.Window('', [[sg.Text(str(i[2]), font=("Helvetica", 25))],
+                                        [sg.Button('Yes i remember it', key='-1-')]], [sg.Button('No', key='-1-')],
+                                   size=(300, 200))
+            event1, values1 = new_window.read()
+            new_window.close()
 
 
 def tick_cards(_table):
@@ -81,11 +86,11 @@ def tick_cards(_table):
         rows += [[sg.Checkbox(''), sg.Text(i[0], size=(5, 1), pad=(0, 0)), sg.Text(i[1], size=(15, 1), pad=(0, 0)),
                   sg.Text(i[2], size=(30, 1), pad=(0, 0))]]
     button = [[sg.Button('OK')]]
-    new_window = sg.Window('Your Cards', header + rows + button, font='Courier 12', finalize=True)
+    new_window = sg.Window('Global Cards', header + rows + button, font='Courier 12', finalize=True)
     event1, values1 = new_window.read()
     for i, j in values1.items():
         if j:
-            account.add_card([_table[i]])
+            account.add_card(_table[i])
     new_window.close()
 
 
